@@ -1,5 +1,5 @@
 [run]
 branch = 1
 cover_pylib = 0
-source = shipwire
+source = thegamecrafter
 omit = */tests/*, */test_*.py

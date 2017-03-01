@@ -5,124 +5,174 @@ module you must also add a corresponding Response class below.
 """
 
 import requests
+import urlparse
+from .exceptions import ResponseError
 
-HTTP_SUCCESS = 200
-SHIPWIRE_GET_ALL_LIMIT = 200
+class TheGameCrafterResponse(object):
+    def __init__(self, response, thegamecrafter_instance):
+        self.response = response
+        self.content = response.json()
+        self.thegamecrafter = thegamecrafter_instance
+    def __getattr__(self, name):
+        if name == 'result': # no recursion!
+            return None
+        result = self.content.get('result')
+        if name in result:
+            return result[name]
+        elif '_' + name in result:
+            return result['_' + name]
+        else:
+            return None
+    def __repr__(self):
+        return repr(self.__dict__)
 
 
-class ShipwireResponse(object):
-    def __init__(self, response, shipwire_instance):
-        r = response
-        self.response = r
-        j = r.json()
-        self.json = j
-        self.status = j.get('status')
-        self.message = j.get('message')
-        self.location = j.get('resourceLocation')
-        self.resource_location = self.location
-        self.resource = j.get('resource')
-        self.warnings = j.get('warnings')
-        self.errors = j.get('errors')
-        self.shipwire = shipwire_instance
-
-
-class ListResponse(ShipwireResponse):
-    def __init__(self, response, shipwire_instance):
-        super(ListResponse, self).__init__(response, shipwire_instance)
+class ListResponse(TheGameCrafterResponse):
+    def __init__(self, response, thegamecrafter_instance):
+        super(ListResponse, self).__init__(response, thegamecrafter_instance)
 
         # check to make sure that you have a valid response
-        if self.status is not HTTP_SUCCESS:
+        if 'error' in self.content:
             return
 
-        r = self.resource
-        self.total = r.get('total')
-        self.previous = r.get('previous')
-        self.next = r.get('next')
-        self.__next__ = r.get('next')
-        self.offset = r.get('offset')
-        self.items = r.get('items')
-        self.limit = len(self.items)
-        self.all_serial = self._get_all_serial
-        self.all = self.all_serial
+        self.all = self.all_serial = self._get_all_serial
 
     def _get_all_serial(self):
-        # loop over all items with previous and next
-        next_uri = self.__next__
         req = self.response.request
         items = self.items
 
-        while next_uri:
-            resp = requests.request(req.method, next_uri, auth=self.shipwire.auth)
-            list_resp = ListResponse(resp, self.shipwire)
+        current_page = self.paging['page_number'] + 1
+
+        while current_page <= self.paging['total_pages']:
+            params = urlparse.parse_qs(req.body)
+            params['_page_number'] = current_page
+            resp = requests.request(req.method, req.url, params=params)
+            list_resp = ListResponse(resp, self.thegamecrafter)
             items.extend(list_resp.items)
-            next_uri = list_resp.__next__
+            current_page += 1
 
         return items
 
 
-class CreateResponse(ListResponse):
+class CreateResponse(TheGameCrafterResponse):
     pass
 
-
-class GetResponse(ShipwireResponse):
+class FetchResponse(TheGameCrafterResponse):
     pass
 
-
-class ModifyResponse(ShipwireResponse):
+class UpdateResponse(TheGameCrafterResponse):
     pass
 
-
-class DeleteResponse(ShipwireResponse):
+class DeleteResponse(TheGameCrafterResponse):
     pass
 
-
-class CancelResponse(ShipwireResponse):
+class AddResponse(TheGameCrafterResponse):
     pass
 
-
-class ShipmentsResponse(ListResponse):
+class Add_itemResponse(TheGameCrafterResponse):
     pass
 
-
-class Instructions_recipientsResponse(ListResponse):
+class AddressesResponse(ListResponse):
     pass
 
-
-class Cancel_labelsResponse(ListResponse):
+class AdjustResponse(TheGameCrafterResponse):
     pass
 
-
-class HoldsResponse(ListResponse):
+class Adjust_itemResponse(TheGameCrafterResponse):
     pass
 
-
-class LabelsResponse(ListResponse):
+class Attach_userResponse(TheGameCrafterResponse):
     pass
 
-
-class Clear_holdsResponse(ShipwireResponse):
+class Bulk_pricingResponse(TheGameCrafterResponse):
     pass
 
+class CardsResponse(ListResponse):
+    pass
+
+class ClaimResponse(TheGameCrafterResponse):
+    pass
+
+class Convert_to_cartResponse(TheGameCrafterResponse):
+    pass
+
+class Convert_to_wishlistResponse(TheGameCrafterResponse):
+    pass
+
+class CopyResponse(TheGameCrafterResponse):
+    pass
+
+class Cost_breakdownResponse(TheGameCrafterResponse):
+    pass
+
+class CountriesResponse(TheGameCrafterResponse):
+    pass
+
+class GamesResponse(ListResponse):
+    pass
 
 class ItemsResponse(ListResponse):
     pass
 
-
-class ReturnsResponse(ListResponse):
+class LockResponse(TheGameCrafterResponse):
     pass
 
-
-class TrackingsResponse(ListResponse):
+class LoginResponse(TheGameCrafterResponse):
     pass
 
-
-class ProductsResponse(ListResponse):
+class LogoutResponse(TheGameCrafterResponse):
     pass
 
-
-class QuoteResponse(ShipwireResponse):
+class MergeResponse(TheGameCrafterResponse):
     pass
 
+class OpinionResponse(TheGameCrafterResponse):
+    pass
 
-class Split_ordersResponse(ListResponse):
+class Pay_creditcardResponse(TheGameCrafterResponse):
+    pass
+
+class Pay_invoiceResponse(TheGameCrafterResponse):
+    pass
+
+class Pay_shopcreditResponse(TheGameCrafterResponse):
+    pass
+
+class PublishResponse(TheGameCrafterResponse):
+    pass
+
+class QueueResponse(TheGameCrafterResponse):
+    pass
+
+class ReferencesResponse(ListResponse):
+    pass
+
+class RefundResponse(TheGameCrafterResponse):
+    pass
+
+class ReviewResponse(TheGameCrafterResponse):
+    pass
+
+class Shipping_method_optionsResponse(TheGameCrafterResponse):
+    pass
+
+class Similar_gamesResponse(ListResponse):
+    pass
+
+class Similar_partsResponse(ListResponse):
+    pass
+
+class SiteResponse(TheGameCrafterResponse):
+    pass
+
+class SsoResponse(TheGameCrafterResponse):
+    pass
+
+class StatesResponse(TheGameCrafterResponse):
+    pass
+
+class UnlockResponse(TheGameCrafterResponse):
+    pass
+
+class UnpublishResponse(TheGameCrafterResponse):
     pass

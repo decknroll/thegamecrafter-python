@@ -1,29 +1,39 @@
-class ShipwireError(Exception):
+class TheGameCrafterError(Exception):
     """
-    Base Exception thrown by the Shipwire object when there is a
+    Base Exception thrown by the TheGameCrafter object when there is a
     general error interacting with the API.
     """
     pass
 
 
-class ResponseError(ShipwireError):
+class ResponseError(TheGameCrafterError):
     """
     Exception raised when a response indicating failure is encountered
     """
 
     def __init__(self, response):
         try:
-            message = response.json()['message']
+            error_code = str(response.json()['error']['code'])
         except:
-            message = "Unknown message"
+            error_code = "Unknown Code"
+
+        try:
+            message = response.json()['error']['message']
+        except:
+            message = "Unknown Message"
+
+        try:
+            data = response.json()['error']['data']
+        except:
+            data = ""
 
         super(ResponseError, self).__init__(
-            'Unexpected Status Code (%d): %s' %
-            (response.status_code, message))
+            'Error Code (%s): %s %s' %
+            (error_code, message, data))
         self.response = response
 
 
-class TimeoutError(ShipwireError):
+class TimeoutError(TheGameCrafterError):
     """
     Exception raised when a timeout occurs.
     """
