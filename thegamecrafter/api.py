@@ -141,7 +141,10 @@ class TheGameCrafter():
         if username and password and apikey:
             params = {'api_key_id': apikey, 'username' : username, 'password': password}
             response = requests.post('https://www.thegamecrafter.com/api/session', params=params)
-            self.session_id = response.json()['result']['id']
+            try:
+                self.session_id = response.json()['result']['id']
+            except KeyError:
+                raise(Exception("Error with /api/sesion "+str(response.json())))
             self.auth = True
 
         self.secure = secure
