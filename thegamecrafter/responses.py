@@ -5,7 +5,7 @@ module you must also add a corresponding Response class below.
 """
 
 import requests
-import urlparse
+from urllib.parse import urlparse
 from .exceptions import ResponseError
 
 class TheGameCrafterResponse(object):

@@ -2,6 +2,7 @@ import copy
 import requests
 
 from . import responses
+from functools import reduce
 from .exceptions import ResponseError, TheGameCrafterError, TimeoutError
 
 """ Add or remove methods and API calls here. """
